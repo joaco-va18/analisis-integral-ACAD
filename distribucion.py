@@ -1,0 +1,33 @@
+import numpy as np
+from scipy import stats
+from riesgo import acad
+import matplotlib.pyplot as plt
+skew = stats.skew(acad)
+kurtosis = stats.kurtosis(acad)
+jb_stat, p_valor = stats.jarque_bera(acad)
+monthly_ret = acad.resample("ME").sum()
+skew_m = stats.skew(monthly_ret)
+kurtosis_m = stats.kurtosis(monthly_ret)
+if __name__ == "__main__":
+    print("Skew:", round(skew, 5))
+    print("kurtosis", round(kurtosis, 5))
+    print("Jarque-Bera:", round(jb_stat, 2), "| p-value:", p_valor)
+    print("Average Monthly Return:", round(monthly_ret.mean(), 5))
+    print("Kurtosis excluding worst day", round(stats.kurtosis(acad.drop(acad.idxmin())), 5))
+    print("Monthly kurtosis", round(kurtosis_m, 5))
+    print("Monthly Skew:", round(skew_m, 5))
+    plt.figure()
+    stats.probplot(acad, dist="norm", plot=plt)
+    plt.title("QQ-plot ACAD — daily returns")
+    plt.savefig("qq_acad_daily.png")
+    plt.figure()
+    stats.probplot(monthly_ret, dist="norm", plot=plt)
+    plt.title("QQ-plot ACAD — monthly returns")
+    plt.savefig("qq_acad_monthly.png")
+    plt.figure()
+    plt.hist(acad, bins=100, density=True, alpha=0.6, label="ACAD")
+    x = np.linspace(acad.min(), acad.max(), 200)
+    plt.plot(x, stats.norm.pdf(x, acad.mean(), acad.std()), color="red", label="Normal")
+    plt.title("ACAD daily returns vs Normal")
+    plt.legend()
+    plt.savefig("hist_acad.png")
